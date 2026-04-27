@@ -1,0 +1,643 @@
+{
+  "cells": [
+    {
+      "cell_type": "code",
+      "source": [
+        "!pip install googletrans==4.0.0-rc1 scikit-learn numpy spacy tensorflow\n",
+        "!python -m spacy download en_core_web_sm"
+      ],
+      "metadata": {
+        "collapsed": true,
+        "id": "aCgyVKFPMcZ9",
+        "outputId": "89d63328-534b-4ff7-ef2f-1b7a3fcf681e",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 1000
+        }
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting googletrans==4.0.0-rc1\n",
+            "  Downloading googletrans-4.0.0rc1.tar.gz (20 kB)\n",
+            "  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Requirement already satisfied: scikit-learn in /usr/local/lib/python3.12/dist-packages (1.6.1)\n",
+            "Requirement already satisfied: numpy in /usr/local/lib/python3.12/dist-packages (2.0.2)\n",
+            "Requirement already satisfied: spacy in /usr/local/lib/python3.12/dist-packages (3.8.14)\n",
+            "Requirement already satisfied: tensorflow in /usr/local/lib/python3.12/dist-packages (2.19.0)\n",
+            "Collecting httpx==0.13.3 (from googletrans==4.0.0-rc1)\n",
+            "  Downloading httpx-0.13.3-py3-none-any.whl.metadata (25 kB)\n",
+            "Requirement already satisfied: certifi in /usr/local/lib/python3.12/dist-packages (from httpx==0.13.3->googletrans==4.0.0-rc1) (2026.2.25)\n",
+            "Collecting hstspreload (from httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading hstspreload-2025.1.1-py3-none-any.whl.metadata (2.1 kB)\n",
+            "Requirement already satisfied: sniffio in /usr/local/lib/python3.12/dist-packages (from httpx==0.13.3->googletrans==4.0.0-rc1) (1.3.1)\n",
+            "Collecting chardet==3.* (from httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading chardet-3.0.4-py2.py3-none-any.whl.metadata (3.2 kB)\n",
+            "Collecting idna==2.* (from httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading idna-2.10-py2.py3-none-any.whl.metadata (9.1 kB)\n",
+            "Collecting rfc3986<2,>=1.3 (from httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading rfc3986-1.5.0-py2.py3-none-any.whl.metadata (6.5 kB)\n",
+            "Collecting httpcore==0.9.* (from httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading httpcore-0.9.1-py3-none-any.whl.metadata (4.6 kB)\n",
+            "Collecting h11<0.10,>=0.8 (from httpcore==0.9.*->httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading h11-0.9.0-py2.py3-none-any.whl.metadata (8.1 kB)\n",
+            "Collecting h2==3.* (from httpcore==0.9.*->httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading h2-3.2.0-py2.py3-none-any.whl.metadata (32 kB)\n",
+            "Collecting hyperframe<6,>=5.2.0 (from h2==3.*->httpcore==0.9.*->httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading hyperframe-5.2.0-py2.py3-none-any.whl.metadata (7.2 kB)\n",
+            "Collecting hpack<4,>=3.0 (from h2==3.*->httpcore==0.9.*->httpx==0.13.3->googletrans==4.0.0-rc1)\n",
+            "  Downloading hpack-3.0.0-py2.py3-none-any.whl.metadata (7.0 kB)\n",
+            "Requirement already satisfied: scipy>=1.6.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn) (1.16.3)\n",
+            "Requirement already satisfied: joblib>=1.2.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn) (1.5.3)\n",
+            "Requirement already satisfied: threadpoolctl>=3.1.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn) (3.6.0)\n",
+            "Requirement already satisfied: spacy-legacy<3.1.0,>=3.0.11 in /usr/local/lib/python3.12/dist-packages (from spacy) (3.0.12)\n",
+            "Requirement already satisfied: spacy-loggers<2.0.0,>=1.0.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (1.0.5)\n",
+            "Requirement already satisfied: murmurhash<1.1.0,>=0.28.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (1.0.15)\n",
+            "Requirement already satisfied: cymem<2.1.0,>=2.0.2 in /usr/local/lib/python3.12/dist-packages (from spacy) (2.0.13)\n",
+            "Requirement already satisfied: preshed<3.1.0,>=3.0.2 in /usr/local/lib/python3.12/dist-packages (from spacy) (3.0.13)\n",
+            "Requirement already satisfied: thinc<8.4.0,>=8.3.12 in /usr/local/lib/python3.12/dist-packages (from spacy) (8.3.13)\n",
+            "Requirement already satisfied: wasabi<1.2.0,>=0.9.1 in /usr/local/lib/python3.12/dist-packages (from spacy) (1.1.3)\n",
+            "Requirement already satisfied: srsly<3.0.0,>=2.5.3 in /usr/local/lib/python3.12/dist-packages (from spacy) (2.5.3)\n",
+            "Requirement already satisfied: catalogue<2.1.0,>=2.0.6 in /usr/local/lib/python3.12/dist-packages (from spacy) (2.0.10)\n",
+            "Requirement already satisfied: weasel<2.0.0,>=1.0.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (1.0.0)\n",
+            "Requirement already satisfied: confection<2.0.0,>=1.3.2 in /usr/local/lib/python3.12/dist-packages (from spacy) (1.3.3)\n",
+            "Requirement already satisfied: typer<1.0.0,>=0.3.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (0.24.1)\n",
+            "Requirement already satisfied: tqdm<5.0.0,>=4.38.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (4.67.3)\n",
+            "Requirement already satisfied: requests<3.0.0,>=2.13.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (2.32.4)\n",
+            "Requirement already satisfied: pydantic<3.0.0,>=2.0.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (2.12.3)\n",
+            "Requirement already satisfied: jinja2 in /usr/local/lib/python3.12/dist-packages (from spacy) (3.1.6)\n",
+            "Requirement already satisfied: setuptools in /usr/local/lib/python3.12/dist-packages (from spacy) (75.2.0)\n",
+            "Requirement already satisfied: packaging>=20.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (26.0)\n",
+            "Requirement already satisfied: absl-py>=1.0.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (1.4.0)\n",
+            "Requirement already satisfied: astunparse>=1.6.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (1.6.3)\n",
+            "Requirement already satisfied: flatbuffers>=24.3.25 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (25.12.19)\n",
+            "Requirement already satisfied: gast!=0.5.0,!=0.5.1,!=0.5.2,>=0.2.1 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (0.7.0)\n",
+            "Requirement already satisfied: google-pasta>=0.1.1 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (0.2.0)\n",
+            "Requirement already satisfied: libclang>=13.0.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (18.1.1)\n",
+            "Requirement already satisfied: opt-einsum>=2.3.2 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (3.4.0)\n",
+            "Requirement already satisfied: protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<6.0.0dev,>=3.20.3 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (5.29.6)\n",
+            "Requirement already satisfied: six>=1.12.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (1.17.0)\n",
+            "Requirement already satisfied: termcolor>=1.1.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (3.3.0)\n",
+            "Requirement already satisfied: typing-extensions>=3.6.6 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (4.15.0)\n",
+            "Requirement already satisfied: wrapt>=1.11.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (2.1.2)\n",
+            "Requirement already satisfied: grpcio<2.0,>=1.24.3 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (1.80.0)\n",
+            "Requirement already satisfied: tensorboard~=2.19.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (2.19.0)\n",
+            "Requirement already satisfied: keras>=3.5.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (3.13.2)\n",
+            "Requirement already satisfied: h5py>=3.11.0 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (3.16.0)\n",
+            "Requirement already satisfied: ml-dtypes<1.0.0,>=0.5.1 in /usr/local/lib/python3.12/dist-packages (from tensorflow) (0.5.4)\n",
+            "Requirement already satisfied: wheel<1.0,>=0.23.0 in /usr/local/lib/python3.12/dist-packages (from astunparse>=1.6.0->tensorflow) (0.46.3)\n",
+            "Requirement already satisfied: rich in /usr/local/lib/python3.12/dist-packages (from keras>=3.5.0->tensorflow) (13.9.4)\n",
+            "Requirement already satisfied: namex in /usr/local/lib/python3.12/dist-packages (from keras>=3.5.0->tensorflow) (0.1.0)\n",
+            "Requirement already satisfied: optree in /usr/local/lib/python3.12/dist-packages (from keras>=3.5.0->tensorflow) (0.19.0)\n",
+            "Requirement already satisfied: annotated-types>=0.6.0 in /usr/local/lib/python3.12/dist-packages (from pydantic<3.0.0,>=2.0.0->spacy) (0.7.0)\n",
+            "Requirement already satisfied: pydantic-core==2.41.4 in /usr/local/lib/python3.12/dist-packages (from pydantic<3.0.0,>=2.0.0->spacy) (2.41.4)\n",
+            "Requirement already satisfied: typing-inspection>=0.4.2 in /usr/local/lib/python3.12/dist-packages (from pydantic<3.0.0,>=2.0.0->spacy) (0.4.2)\n",
+            "Requirement already satisfied: charset_normalizer<4,>=2 in /usr/local/lib/python3.12/dist-packages (from requests<3.0.0,>=2.13.0->spacy) (3.4.7)\n",
+            "Requirement already satisfied: urllib3<3,>=1.21.1 in /usr/local/lib/python3.12/dist-packages (from requests<3.0.0,>=2.13.0->spacy) (2.5.0)\n",
+            "Requirement already satisfied: markdown>=2.6.8 in /usr/local/lib/python3.12/dist-packages (from tensorboard~=2.19.0->tensorflow) (3.10.2)\n",
+            "Requirement already satisfied: tensorboard-data-server<0.8.0,>=0.7.0 in /usr/local/lib/python3.12/dist-packages (from tensorboard~=2.19.0->tensorflow) (0.7.2)\n",
+            "Requirement already satisfied: werkzeug>=1.0.1 in /usr/local/lib/python3.12/dist-packages (from tensorboard~=2.19.0->tensorflow) (3.1.8)\n",
+            "Requirement already satisfied: blis<1.4.0,>=1.3.0 in /usr/local/lib/python3.12/dist-packages (from thinc<8.4.0,>=8.3.12->spacy) (1.3.3)\n",
+            "Requirement already satisfied: click>=8.2.1 in /usr/local/lib/python3.12/dist-packages (from typer<1.0.0,>=0.3.0->spacy) (8.3.2)\n",
+            "Requirement already satisfied: shellingham>=1.3.0 in /usr/local/lib/python3.12/dist-packages (from typer<1.0.0,>=0.3.0->spacy) (1.5.4)\n",
+            "Requirement already satisfied: annotated-doc>=0.0.2 in /usr/local/lib/python3.12/dist-packages (from typer<1.0.0,>=0.3.0->spacy) (0.0.4)\n",
+            "Requirement already satisfied: cloudpathlib>=0.7.0 in /usr/local/lib/python3.12/dist-packages (from weasel<2.0.0,>=1.0.0->spacy) (0.23.0)\n",
+            "Requirement already satisfied: smart-open>=5.2.1 in /usr/local/lib/python3.12/dist-packages (from weasel<2.0.0,>=1.0.0->spacy) (7.5.1)\n",
+            "INFO: pip is looking at multiple versions of weasel to determine which version is compatible with other requirements. This could take a while.\n",
+            "Collecting spacy\n",
+            "  Downloading spacy-3.8.14-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (28 kB)\n",
+            "  Downloading spacy-3.8.13-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (28 kB)\n",
+            "  Downloading spacy-3.8.11-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (27 kB)\n",
+            "Collecting weasel<0.5.0,>=0.4.2 (from spacy)\n",
+            "  Downloading weasel-0.4.3-py3-none-any.whl.metadata (4.6 kB)\n",
+            "Requirement already satisfied: typer-slim<1.0.0,>=0.3.0 in /usr/local/lib/python3.12/dist-packages (from spacy) (0.24.0)\n",
+            "Collecting confection<0.2.0,>=0.0.4 (from weasel<0.5.0,>=0.4.2->spacy)\n",
+            "  Downloading confection-0.1.5-py3-none-any.whl.metadata (19 kB)\n",
+            "INFO: pip is looking at multiple versions of thinc to determine which version is compatible with other requirements. This could take a while.\n",
+            "Collecting thinc<8.4.0,>=8.3.4 (from spacy)\n",
+            "  Downloading thinc-8.3.12-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (14 kB)\n",
+            "  Downloading thinc-8.3.11-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (14 kB)\n",
+            "Requirement already satisfied: MarkupSafe>=2.0 in /usr/local/lib/python3.12/dist-packages (from jinja2->spacy) (3.0.3)\n",
+            "Requirement already satisfied: markdown-it-py>=2.2.0 in /usr/local/lib/python3.12/dist-packages (from rich->keras>=3.5.0->tensorflow) (4.0.0)\n",
+            "Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /usr/local/lib/python3.12/dist-packages (from rich->keras>=3.5.0->tensorflow) (2.20.0)\n",
+            "Requirement already satisfied: mdurl~=0.1 in /usr/local/lib/python3.12/dist-packages (from markdown-it-py>=2.2.0->rich->keras>=3.5.0->tensorflow) (0.1.2)\n",
+            "Downloading httpx-0.13.3-py3-none-any.whl (55 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m55.1/55.1 kB\u001b[0m \u001b[31m3.4 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading chardet-3.0.4-py2.py3-none-any.whl (133 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m133.4/133.4 kB\u001b[0m \u001b[31m5.9 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading httpcore-0.9.1-py3-none-any.whl (42 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m42.6/42.6 kB\u001b[0m \u001b[31m2.5 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading idna-2.10-py2.py3-none-any.whl (58 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m58.8/58.8 kB\u001b[0m \u001b[31m3.4 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading h2-3.2.0-py2.py3-none-any.whl (65 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m65.0/65.0 kB\u001b[0m \u001b[31m4.4 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading spacy-3.8.11-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (33.2 MB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m33.2/33.2 MB\u001b[0m \u001b[31m44.9 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading weasel-0.4.3-py3-none-any.whl (50 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m50.8/50.8 kB\u001b[0m \u001b[31m3.1 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading thinc-8.3.11-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (3.9 MB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m3.9/3.9 MB\u001b[0m \u001b[31m99.8 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading confection-0.1.5-py3-none-any.whl (35 kB)\n",
+            "Downloading rfc3986-1.5.0-py2.py3-none-any.whl (31 kB)\n",
+            "Downloading hstspreload-2025.1.1-py3-none-any.whl (1.3 MB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m1.3/1.3 MB\u001b[0m \u001b[31m58.6 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading h11-0.9.0-py2.py3-none-any.whl (53 kB)\n",
+            "\u001b[2K   \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m53.6/53.6 kB\u001b[0m \u001b[31m3.6 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25hDownloading hpack-3.0.0-py2.py3-none-any.whl (38 kB)\n",
+            "Downloading hyperframe-5.2.0-py2.py3-none-any.whl (12 kB)\n",
+            "Building wheels for collected packages: googletrans\n",
+            "  Building wheel for googletrans (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "  Created wheel for googletrans: filename=googletrans-4.0.0rc1-py3-none-any.whl size=17396 sha256=b16175ed94e5d2f1c5450546c8a1697295114d5e68171c4603ecfa9c189fe7a7\n",
+            "  Stored in directory: /root/.cache/pip/wheels/95/0f/04/b17a72024b56a60e499ce1a6313d283ed5ba332407155bee03\n",
+            "Successfully built googletrans\n",
+            "Installing collected packages: rfc3986, hyperframe, hpack, h11, chardet, idna, hstspreload, h2, httpcore, httpx, confection, thinc, googletrans, weasel, spacy\n",
+            "  Attempting uninstall: hyperframe\n",
+            "    Found existing installation: hyperframe 6.1.0\n",
+            "    Uninstalling hyperframe-6.1.0:\n",
+            "      Successfully uninstalled hyperframe-6.1.0\n",
+            "  Attempting uninstall: hpack\n",
+            "    Found existing installation: hpack 4.1.0\n",
+            "    Uninstalling hpack-4.1.0:\n",
+            "      Successfully uninstalled hpack-4.1.0\n",
+            "  Attempting uninstall: h11\n",
+            "    Found existing installation: h11 0.16.0\n",
+            "    Uninstalling h11-0.16.0:\n",
+            "      Successfully uninstalled h11-0.16.0\n",
+            "  Attempting uninstall: chardet\n",
+            "    Found existing installation: chardet 5.2.0\n",
+            "    Uninstalling chardet-5.2.0:\n",
+            "      Successfully uninstalled chardet-5.2.0\n",
+            "  Attempting uninstall: idna\n",
+            "    Found existing installation: idna 3.11\n",
+            "    Uninstalling idna-3.11:\n",
+            "      Successfully uninstalled idna-3.11\n",
+            "  Attempting uninstall: h2\n",
+            "    Found existing installation: h2 4.3.0\n",
+            "    Uninstalling h2-4.3.0:\n",
+            "      Successfully uninstalled h2-4.3.0\n",
+            "  Attempting uninstall: httpcore\n",
+            "    Found existing installation: httpcore 1.0.9\n",
+            "    Uninstalling httpcore-1.0.9:\n",
+            "      Successfully uninstalled httpcore-1.0.9\n",
+            "  Attempting uninstall: httpx\n",
+            "    Found existing installation: httpx 0.28.1\n",
+            "    Uninstalling httpx-0.28.1:\n",
+            "      Successfully uninstalled httpx-0.28.1\n",
+            "  Attempting uninstall: confection\n",
+            "    Found existing installation: confection 1.3.3\n",
+            "    Uninstalling confection-1.3.3:\n",
+            "      Successfully uninstalled confection-1.3.3\n",
+            "  Attempting uninstall: thinc\n",
+            "    Found existing installation: thinc 8.3.13\n",
+            "    Uninstalling thinc-8.3.13:\n",
+            "      Successfully uninstalled thinc-8.3.13\n",
+            "  Attempting uninstall: googletrans\n",
+            "    Found existing installation: googletrans 4.0.2\n",
+            "    Uninstalling googletrans-4.0.2:\n",
+            "      Successfully uninstalled googletrans-4.0.2\n",
+            "  Attempting uninstall: weasel\n",
+            "    Found existing installation: weasel 1.0.0\n",
+            "    Uninstalling weasel-1.0.0:\n",
+            "      Successfully uninstalled weasel-1.0.0\n",
+            "  Attempting uninstall: spacy\n",
+            "    Found existing installation: spacy 3.8.14\n",
+            "    Uninstalling spacy-3.8.14:\n",
+            "      Successfully uninstalled spacy-3.8.14\n",
+            "\u001b[31mERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.\n",
+            "google-adk 1.29.0 requires httpx<1.0.0,>=0.27.0, but you have httpx 0.13.3 which is incompatible.\n",
+            "gradio 5.50.0 requires httpx<1.0,>=0.24.1, but you have httpx 0.13.3 which is incompatible.\n",
+            "langgraph-sdk 0.3.13 requires httpx>=0.25.2, but you have httpx 0.13.3 which is incompatible.\n",
+            "mcp 1.27.0 requires httpx>=0.27.1, but you have httpx 0.13.3 which is incompatible.\n",
+            "openai 2.31.0 requires httpx<1,>=0.23.0, but you have httpx 0.13.3 which is incompatible.\n",
+            "langsmith 0.7.30 requires httpx<1,>=0.23.0, but you have httpx 0.13.3 which is incompatible.\n",
+            "huggingface-hub 1.10.1 requires httpx<1,>=0.23.0, but you have httpx 0.13.3 which is incompatible.\n",
+            "google-genai 1.68.0 requires httpx<1.0.0,>=0.28.1, but you have httpx 0.13.3 which is incompatible.\n",
+            "gradio-client 1.14.0 requires httpx>=0.24.1, but you have httpx 0.13.3 which is incompatible.\n",
+            "firebase-admin 6.9.0 requires httpx[http2]==0.28.1, but you have httpx 0.13.3 which is incompatible.\u001b[0m\u001b[31m\n",
+            "\u001b[0mSuccessfully installed chardet-3.0.4 confection-0.1.5 googletrans-4.0.0rc1 h11-0.9.0 h2-3.2.0 hpack-3.0.0 hstspreload-2025.1.1 httpcore-0.9.1 httpx-0.13.3 hyperframe-5.2.0 idna-2.10 rfc3986-1.5.0 spacy-3.8.11 thinc-8.3.11 weasel-0.4.3\n"
+          ]
+        },
+        {
+          "output_type": "display_data",
+          "data": {
+            "application/vnd.colab-display-data+json": {
+              "pip_warning": {
+                "packages": [
+                  "googletrans",
+                  "h11",
+                  "h2",
+                  "hpack",
+                  "httpcore",
+                  "httpx",
+                  "hyperframe",
+                  "idna"
+                ]
+              },
+              "id": "096136dbab884332a1ac2903b9e94ab7"
+            }
+          },
+          "metadata": {}
+        },
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting en-core-web-sm==3.8.0\n",
+            "  Downloading https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl (12.8 MB)\n",
+            "\u001b[2K     \u001b[90m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\u001b[0m \u001b[32m12.8/12.8 MB\u001b[0m \u001b[31m87.6 MB/s\u001b[0m eta \u001b[36m0:00:00\u001b[0m\n",
+            "\u001b[?25h\u001b[31mERROR: Operation cancelled by user\u001b[0m\u001b[31m\n",
+            "\u001b[0m^C\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "### **TOPIC 3: TYPES OF AI APPLICATIONS**"
+      ],
+      "metadata": {
+        "id": "fILLhMW-NHEn"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## *── Example 1: Translation ──────────────────*"
+      ],
+      "metadata": {
+        "id": "ttvTttH4NOX6"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from googletrans import Translator\n",
+        "\n",
+        "translator = Translator()\n",
+        "result = translator.translate(\"The weather is beautiful today\", dest='es')\n",
+        "print(\"Input : The weather is beautiful today\")\n",
+        "print(\"Output:\", result.text)"
+      ],
+      "metadata": {
+        "id": "v4vywzw9Mu4n",
+        "outputId": "73e2750c-cd6b-494a-ec96-f6fd52cda90f",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 2,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Input : The weather is beautiful today\n",
+            "Output: El clima esta hermoso hoy\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## *── Example 2: Classification – Spam Detection ──*"
+      ],
+      "metadata": {
+        "id": "qN_g86MlNdGD"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.feature_extraction.text import CountVectorizer\n",
+        "from sklearn.naive_bayes import MultinomialNB\n",
+        "\n",
+        "emails = [\"Win free prize\", \"Meeting tomorrow\", \"Lottery winner\", \"Project deadline\"]\n",
+        "labels = [\"spam\", \"not_spam\", \"spam\", \"not_spam\"]\n",
+        "\n",
+        "vectorizer = CountVectorizer()\n",
+        "X = vectorizer.fit_transform(emails)\n",
+        "\n",
+        "spam_model = MultinomialNB()\n",
+        "spam_model.fit(X, labels)\n",
+        "\n",
+        "new_email = [\"Congratulations! You won $1000\"]\n",
+        "X_new = vectorizer.transform(new_email)\n",
+        "print(\"Test email :\", new_email[0])\n",
+        "print(\"Prediction :\", spam_model.predict(X_new))"
+      ],
+      "metadata": {
+        "id": "qLkynHisNFpH",
+        "outputId": "28b8b662-1766-492e-ae4c-0ff40408541a",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Test email : Congratulations! You won $1000\n",
+            "Prediction : ['not_spam']\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## *── Example 3: Clustering – Customer Segmentation ──*"
+      ],
+      "metadata": {
+        "id": "Rt2ByG5XNbte"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.cluster import KMeans\n",
+        "import numpy as np\n",
+        "\n",
+        "# Data: [Monthly Spend, Purchase Frequency]\n",
+        "data = np.array([[500, 10], [50, 2], [600, 12], [30, 1]])\n",
+        "\n",
+        "kmeans = KMeans(n_clusters=2, random_state=0, n_init='auto')\n",
+        "kmeans.fit(data)\n",
+        "\n",
+        "print(\"Customers (Spend, Frequency):\", data.tolist())\n",
+        "print(\"Cluster labels              :\", kmeans.labels_)  # [0 1 0 1]"
+      ],
+      "metadata": {
+        "id": "ajE2RczCNsBm",
+        "outputId": "cdcecd55-ef9b-4a82-c3a4-eeb49291a4ef",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Customers (Spend, Frequency): [[500, 10], [50, 2], [600, 12], [30, 1]]\n",
+            "Cluster labels              : [0 1 0 1]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## *── Example 4: Information Extraction – NER ──*"
+      ],
+      "metadata": {
+        "id": "5GhtkcBQNxD4"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import spacy\n",
+        "\n",
+        "nlp = spacy.load(\"en_core_web_sm\")\n",
+        "text = \"Elon Musk founded SpaceX in Hawthorne, California on March 14, 2002.\"\n",
+        "doc = nlp(text)\n",
+        "\n",
+        "print(\"Input text:\", text)\n",
+        "print(\"Entities found:\")\n",
+        "for ent in doc.ents:\n",
+        "    print(f\"  {ent.label_:10} → {ent.text}\")"
+      ],
+      "metadata": {
+        "id": "aZ2NzApTNuuw",
+        "outputId": "d5b6b0f4-a0e0-447a-9777-2cdb5c2bc559",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 14,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Input text: Elon Musk founded SpaceX in Hawthorne, California on March 14, 2002.\n",
+            "Entities found:\n",
+            "  PERSON     → Elon Musk\n",
+            "  GPE        → Hawthorne\n",
+            "  GPE        → California\n",
+            "  DATE       → March 14, 2002\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "### **TOPIC 5: MACHINE LEARNING**"
+      ],
+      "metadata": {
+        "id": "p51ahW17RFzF"
+      }
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## *── Example 1: Supervised – Regression (Exam Scores) ──*"
+      ],
+      "metadata": {
+        "id": "IRRNC-yUONYS"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.linear_model import LinearRegression\n",
+        "\n",
+        "hours = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)\n",
+        "scores = np.array([45, 55, 65, 72, 80])\n",
+        "\n",
+        "score_model = LinearRegression()\n",
+        "score_model.fit(hours, scores)\n",
+        "\n",
+        "print(f\"Slope     : {score_model.coef_[0]:.1f}\")        # 9.0\n",
+        "print(f\"Intercept : {score_model.intercept_:.0f}\")      # 35\n",
+        "print(f\"Prediction for 7 hours: {score_model.predict([[7]])[0]:.0f}\")  # 98"
+      ],
+      "metadata": {
+        "id": "2dI9BDfJN_rG",
+        "outputId": "ace354bf-30ea-4c2c-c685-9298dbc18442",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 10,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Slope     : 8.7\n",
+            "Intercept : 37\n",
+            "Prediction for 7 hours: 98\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## *── Example 2: Supervised – Classification (Tumor) ──*"
+      ],
+      "metadata": {
+        "id": "ttV25gMlPHoH"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "from sklearn.neighbors import KNeighborsClassifier\n",
+        "\n",
+        "sizes = [[10], [15], [25], [30], [22]]\n",
+        "tumor_labels = ['benign', 'benign', 'malignant', 'malignant', 'malignant']\n",
+        "\n",
+        "knn = KNeighborsClassifier(n_neighbors=3)\n",
+        "knn.fit(sizes, tumor_labels)\n",
+        "\n",
+        "print(\"Test tumor size: 18mm\")\n",
+        "print(\"Prediction     :\", knn.predict([[18]]))"
+      ],
+      "metadata": {
+        "id": "tF_cZFYAPKc2",
+        "outputId": "b77a2c6b-9d41-497d-a88e-4b446b88c220",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 11,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Test tumor size: 18mm\n",
+            "Prediction     : ['malignant']\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## *── Example 3: Unsupervised – K-Means Clustering ──*"
+      ],
+      "metadata": {
+        "id": "woXpsYxWPUT_"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "cust_data = [[15, 39], [15, 81], [45, 6], [70, 77], [85, 40]]\n",
+        "kmeans2 = KMeans(n_clusters=2, random_state=0, n_init='auto')\n",
+        "kmeans2.fit(cust_data)\n",
+        "\n",
+        "print(\"Cluster labels  :\", kmeans2.labels_)          # [0 0 0 1 1]\n",
+        "print(\"Cluster centers :\", kmeans2.cluster_centers_)"
+      ],
+      "metadata": {
+        "id": "K84reGfXPPWh",
+        "outputId": "fef70d09-bbff-49ce-9546-05d5204fe021",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 12,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Cluster labels  : [0 1 0 1 1]\n",
+            "Cluster centers : [[30.         22.5       ]\n",
+            " [56.66666667 66.        ]]\n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "source": [
+        "## *── Example 4: Reinforcement Learning – Tic-Tac-Toe ──*"
+      ],
+      "metadata": {
+        "id": "ThPbZfWPPdYG"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "class TicTacToeAgent:\n",
+        "    def __init__(self):\n",
+        "        self.q_table = {}   # state-action pairs\n",
+        "        self.alpha = 0.1    # learning rate\n",
+        "        self.gamma = 0.9    # discount factor\n",
+        "\n",
+        "    def get_action(self, state, empty_cells, epsilon=0.1):\n",
+        "        if np.random.random() < epsilon:\n",
+        "            return np.random.choice(empty_cells)   # explore\n",
+        "        else:\n",
+        "            # Return best action from Q-table (or random if unseen)\n",
+        "            q_values = {a: self.q_table.get((state, a), 0) for a in empty_cells}\n",
+        "            return max(q_values, key=q_values.get)  # exploit\n",
+        "\n",
+        "agent = TicTacToeAgent()\n",
+        "print(\"TicTacToeAgent created successfully.\")\n",
+        "print(f\"  Learning rate (alpha) : {agent.alpha}\")\n",
+        "print(f\"  Discount factor (gamma): {agent.gamma}\")\n",
+        "print(\"  Q-table starts empty — agent learns through play.\")"
+      ],
+      "metadata": {
+        "id": "iNYCaUiPPYr2",
+        "outputId": "42b4b4b9-afbc-4cfd-c3a1-9ffa7fd268c5",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        }
+      },
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "TicTacToeAgent created successfully.\n",
+            "  Learning rate (alpha) : 0.1\n",
+            "  Discount factor (gamma): 0.9\n",
+            "  Q-table starts empty — agent learns through play.\n"
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "colab": {
+      "provenance": []
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "nbformat": 4,
+  "nbformat_minor": 0
+}
